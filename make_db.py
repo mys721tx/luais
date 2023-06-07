@@ -19,6 +19,9 @@ def create_database(cursor):
             annotator_id INTEGER,
             source_id INTEGER,
             reporter_id INTEGER,
+            author_date TEXT,
+            annotation_date TEXT,
+            curation_date TEXT,
             FOREIGN KEY (author_id) REFERENCES people(id),
             FOREIGN KEY (curator_id) REFERENCES people(id),
             FOREIGN KEY (annotator_id) REFERENCES people(id),
@@ -40,8 +43,7 @@ def create_database(cursor):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             surname TEXT,
-            mail TEXT,
-            date TEXT
+            mail TEXT
         )
     ''')
 
@@ -175,20 +177,20 @@ def parse_xml(cursor, root):
 
             # Get author ID from the lookup dictionary or insert a new record
             author_id = people_lookup.get(
-                (author_name, author_surname, author_mail, author_date))
+                (author_name, author_surname, author_mail))
             if author_id is None:
                 cursor.execute('''
-                    INSERT INTO people (name, surname, mail, date)
-                    VALUES (?, ?, ?, ?)
-                ''', (author_name, author_surname, author_mail, author_date))
+                    INSERT INTO people (name, surname, mail)
+                    VALUES (?, ?, ?)
+                ''', (author_name, author_surname, author_mail))
                 author_id = cursor.lastrowid
                 people_lookup[(author_name, author_surname,
-                               author_mail, author_date)] = author_id
+                               author_mail)] = author_id
 
             # Update author_id in the experiments table
             cursor.execute('''
-                UPDATE experiments SET author_id = ? WHERE id = ?
-            ''', (author_id, experiment_rowid))
+                UPDATE experiments SET author_id = ?, author_date = ? WHERE id = ?
+            ''', (author_id, author_date, experiment_rowid))
 
         except AttributeError:
             pass
@@ -205,20 +207,20 @@ def parse_xml(cursor, root):
 
             # Get annotator ID from the lookup dictionary or insert a new record
             annotator_id = people_lookup.get(
-                (annotator_name, annotator_surname, annotator_mail, annotation_date))
+                (annotator_name, annotator_surname, annotator_mail))
             if annotator_id is None:
                 cursor.execute('''
-                    INSERT INTO people (name, surname, mail, date)
-                    VALUES (?, ?, ?, ?)
-                ''', (annotator_name, annotator_surname, annotator_mail, annotation_date))
+                    INSERT INTO people (name, surname, mail)
+                    VALUES (?, ?, ?)
+                ''', (annotator_name, annotator_surname, annotator_mail))
                 annotator_id = cursor.lastrowid
                 people_lookup[(annotator_name, annotator_surname,
-                               annotator_mail, annotation_date)] = annotator_id
+                               annotator_mail)] = annotator_id
 
             # Update annotator_id in the experiments table
             cursor.execute('''
-                UPDATE experiments SET annotator_id = ? WHERE id = ?
-            ''', (annotator_id, experiment_rowid))
+                UPDATE experiments SET annotator_id = ?, annotation_date = ? WHERE id = ?
+            ''', (annotator_id, annotation_date, experiment_rowid))
 
         except AttributeError:
             pass
@@ -234,20 +236,20 @@ def parse_xml(cursor, root):
 
             # Get curator ID from the lookup dictionary or insert a new record
             curator_id = people_lookup.get(
-                (curator_name, curator_surname, curator_mail, curation_date))
+                (curator_name, curator_surname, curator_mail))
             if curator_id is None:
                 cursor.execute('''
-                    INSERT INTO people (name, surname, mail, date)
-                    VALUES (?, ?, ?, ?)
-                ''', (curator_name, curator_surname, curator_mail, curation_date))
+                    INSERT INTO people (name, surname, mail)
+                    VALUES (?, ?, ?)
+                ''', (curator_name, curator_surname, curator_mail))
                 curator_id = cursor.lastrowid
                 people_lookup[(curator_name, curator_surname,
-                               curator_mail, curation_date)] = curator_id
+                               curator_mail)] = curator_id
 
             # Update curator_id in the experiments table
             cursor.execute('''
-                UPDATE experiments SET curator_id = ? WHERE id = ?
-            ''', (curator_id, experiment_rowid))
+                UPDATE experiments SET curator_id = ?, curation_date = ? WHERE id = ?
+            ''', (curator_id, curation_date, experiment_rowid))
 
         except AttributeError:
             pass
